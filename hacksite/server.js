@@ -3,10 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const bodyParser = require('body-parser');
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const cors = require('cors');
+
+
 app.use(cors());
 
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(express.json());
 
@@ -85,7 +88,7 @@ app.post('/savepic', (req, res) => {
 
 
 // Serve index.html when root URL is accessed
-app.get('/', (req, res) => {
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
