@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Links</title>
+</head>
+<body>
+    <h1>Opening Links</h1>
+    <script>
+        const links = [
+            'https://google.com',
+            'https://yahoo.com',
+            'https://example.com/link3',
+            'https://example.com/link4',
+            'https://example.com/link5',
+            'https://example.com/link6',
+            'https://example.com/link7',
+            'https://example.com/link8',
+            'https://example.com/link9',
+            'https://example.com/link10'
+        ];
+
+        function openLinksInNewTabs() {
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < links.length) {
+                    window.open(links[index], '_blank');
+                    index++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000); // 1 second interval
+        }
+
+        // Call the function when the page loads
+        window.onload = openLinksInNewTabs;
+    </script>
+</body>
+</html>
