@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
 
 // Create a single server to handle all requests
 const server = http.createServer((req, res) => {
@@ -18,6 +19,9 @@ const server = http.createServer((req, res) => {
     sendResponse(res, 405, 'Method Not Allowed');
   }
 });
+
+// Enable CORS for all routes
+server.use(cors());
 
 // Function to handle IP request
 function handleIpRequest(req, res) {
