@@ -1,10 +1,14 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors');
 
 // Create a single server to handle all requests
 const server = http.createServer((req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'POST') {
     if (req.url === '/ip') {
       handleIpRequest(req, res);
@@ -19,9 +23,6 @@ const server = http.createServer((req, res) => {
     sendResponse(res, 405, 'Method Not Allowed');
   }
 });
-
-// Enable CORS for all routes
-server.use(cors());
 
 // Function to handle IP request
 function handleIpRequest(req, res) {
