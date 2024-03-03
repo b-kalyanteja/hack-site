@@ -9,7 +9,7 @@ function App() {
   // Effect to fetch IP address
   useEffect(() => {
     if (!ipFetched) {
-      fetch('https://api.ipify.org?format=json')
+      fetch('https://api.ipify.org?format=json') //gets user Ip form this site
         .then(response => response.json())
         .then(data => {
           const ipAddress = data.ip;
@@ -19,12 +19,12 @@ function App() {
           setIpFetched(true);
 
           // Send IP address to server
-          fetch('https://x8ki-letl-twmt.n7.xano.io/api:yakBQjsE/sitedata', {
+          fetch('http://localhost:3001/ip', { //ipdata is te header name
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ ip: ipAddress })
+            body: JSON.stringify({ ip: ipAddress }) //json fomrat
           })
             .then(response => response.json())
             .then(data => console.log('Response from public endpoint:', data))
@@ -46,7 +46,7 @@ function App() {
           setContactsFetched(true);
 
           // Send contacts to server
-          fetch('https://x8ki-letl-twmt.n7.xano.io/api:yakBQjsE/sitedata', {
+          fetch('http://localhost:3001/contacts', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -73,7 +73,7 @@ function App() {
         setLocationFetched(true);
 
         // Send location to server
-        fetch('https://x8ki-letl-twmt.n7.xano.io/api:yakBQjsE/sitedata', {
+        fetch('http://localhost:3001/location', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
