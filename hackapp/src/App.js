@@ -99,9 +99,21 @@ function App() {
   }, [locationFetched]);
 
   return (
-    <div>
-      <h1>Welcome to New Site</h1>
-      <h1>Site under process</h1>
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Kalyan Website for HK
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          kalyan Site - rRact link
+        </a>
+      </header>
     </div>
   );
 }
