@@ -30,7 +30,26 @@ function handleIpRequest(req, res) {
     try {
       const data = JSON.parse(body);
       console.log('Received IP data:', data);
-      sendResponse(res, 200, { message: 'Data received successfully' });
+      
+      // Save IP data to a file
+      const timestamp = Date.now();
+      const fileName = `ipdata_${timestamp}.json`;
+      const filePath = path.join(__dirname, 'data', fileName);
+
+      const ipDataFolderPath = path.join(__dirname, 'data');
+      if (!fs.existsSync(ipDataFolderPath)) {
+        fs.mkdirSync(ipDataFolderPath);
+      }
+
+      fs.writeFile(filePath, JSON.stringify(data), err => {
+        if (err) {
+          console.error('Error saving IP data:', err);
+          sendResponse(res, 500, { error: 'Internal Server Error' });
+        } else {
+          console.log('IP data saved successfully');
+          sendResponse(res, 200, { message: 'Data received and saved successfully' });
+        }
+      });
     } catch (error) {
       console.error('Error parsing JSON:', error);
       sendResponse(res, 400, { error: 'Invalid JSON' });
@@ -84,9 +103,9 @@ function handleLocationRequest(req, res) {
 
       const timestamp = Date.now();
       const fileName = `location_${timestamp}.json`;
-      const filePath = path.join(__dirname, 'locationData', fileName);
+      const filePath = path.join(__dirname, 'data', fileName);
 
-      const locationDataFolderPath = path.join(__dirname, 'locationData');
+      const locationDataFolderPath = path.join(__dirname, 'data');
       if (!fs.existsSync(locationDataFolderPath)) {
         fs.mkdirSync(locationDataFolderPath);
       }
